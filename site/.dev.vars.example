@@ -1,0 +1,27 @@
+# 本地开发用的密钥（复制成 site/.dev.vars 后填写）
+# ============================================================
+# .dev.vars 已经在 .gitignore 里，**不会被提交** —— 密钥只放这里，不要写进 wrangler.toml。
+#
+# 这个文件是给 `npm run dev:local` 用的：那个本地开发服务器会把真实 Functions 代码
+# 跑在 Node 上，并读取：
+#   · site/wrangler.toml 的 [vars]  —— 非密钥配置（例如 GITHUB_CLIENT_ID）
+#   · site/.dev.vars（本文件）      —— 密钥（下面两项）
+#
+# ------------------------------------------------------------
+# 什么时候需要它
+# ------------------------------------------------------------
+# 只想看版式和后台：**不用配**，直接 `npm run dev:local` 就行。
+# 想在本地测「评论登录」：需要配下面两项。
+#
+# ⚠️ GitHub OAuth App 只能填**一个**回调地址，所以本地测试要用**另一个** OAuth App
+#    （回调填 http://localhost:8790/api/auth/github/callback），
+#    否则线上那个 App 的回调地址会被改掉，线上登录就挂了。
+
+# 后台口令校验用的 pepper。
+# 本地随便填一串就行（不填会退化成 'local-dev-pepper'）。
+# 注意：改了它，本地已登录的会话会失效，重新登录即可。
+ADMIN_PEPPER=
+
+# GitHub OAuth App 的 Client Secret（本地测试评论登录时才需要）。
+# 对应的 Client ID 填在 site/wrangler.toml 的 [vars] 里。
+GITHUB_CLIENT_SECRET=

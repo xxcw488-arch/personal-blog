@@ -1,0 +1,84 @@
+# Cloudflare Pages 项目配置
+# ============================================================
+#
+# ✅ 要填的东西**全在这一个文件里**（外加 2 个 Cloudflare Secret）。
+#    逐条勾掉即可，完整说明见 docs/deployment.md
+#
+#   [ ] 1. database_id       ← 第 4.1 步创建的 D1 的 UUID（**必改**）
+#   [ ] 2. bucket_name       ← 第 4.2 步创建的 R2 桶名
+#   [ ] 3. MEDIA_URL         ← R2 的 r2.dev 地址，或自定义域（**必改**，否则图片打不开）
+#   [ ] 4. name              ← 必须和 Pages 项目名完全一致
+#   [ ] 5. GITHUB_CLIENT_ID  ← 第 3 步创建的 OAuth App（想开评论才需要）
+#   [ ] 6. SITE_URL          ← 有域名之后再填；没域名留占位符即可
+#
+#   下面两个是**密钥**，不要写进这个文件，用 Secret 设置（见第 6 步）：
+#   [ ] ADMIN_PEPPER         ← 后台口令的 pepper
+#   [ ] GITHUB_CLIENT_SECRET ← OAuth App 的 Client Secret
+#
+#   本地开发要用的密钥放在 `site/.dev.vars`（模板 `site/.dev.vars.example`，不进 git）。
+#   前端构建开关在 `site/.env.example`，**与部署无关**，别在那里找这些值。
+#
+# ------------------------------------------------------------
+# 这个文件是 Pages 项目的**唯一真相**。
+#
+# 只要它带了 `pages_build_output_dir`，Cloudflare 就以它为准 ——
+# 控制台里同名的字段（D1/R2 绑定、[vars]）会变成只读、改不动。
+# 所以：**值填在这里，不要在控制台重复配一遍**，否则以后排查问题会非常困惑。
+#
+# ------------------------------------------------------------
+# 部署时要做的三件事
+# ------------------------------------------------------------
+# 1) 创建 Pages 项目时，项目名必须与下面的 `name` 完全一致
+# 2) `database_id` 换成你自己创建的 D1 ID（UUID，不是名字）
+# 3) `bucket_name` 换成你自己的 R2 桶名
+#
+# 两个密钥**不要写进这个文件**，用 Secret 设置：
+#     npx wrangler pages secret put ADMIN_PEPPER --project-name my-app
+#     npx wrangler pages secret put GITHUB_CLIENT_SECRET --project-name my-app
+#
+# 完整步骤见 docs/deployment.md
+#
+# ------------------------------------------------------------
+# 本地开发说明
+# ------------------------------------------------------------
+# 本地**不需要**真实的 id：项目自带的本地开发服务器（`npm run dev:local`）
+# 用 sql.js 模拟 D1、用内存 Map 模拟 R2，完全不读这个文件里的绑定。
+# 只有「远程命令」（wrangler d1 execute --remote）才需要真实的 database_id。
+
+name = "my-blog-site"
+compatibility_date = "2026-10-01"
+pages_build_output_dir = "dist"
+
+# ---------- D1 数据库 ----------
+# 存文章、评论、访客统计等全部结构化数据。
+[[d1_databases]]
+binding = "DB"
+database_name = "blog-db"
+# ⚠️ 换成你自己的 D1 ID：控制台 Storage & databases → D1 → 列表里的 UUID 列
+database_id = "00000000-0000-0000-0000-000000000000"
+
+# ---------- R2 媒体桶 ----------
+# 后台上传接口用它存图片和音频（env.BUCKET.put(...)）。
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "my-blog-media"
+
+# ---------- 环境变量（非密，可以提交进 git）----------
+[vars]
+# 站点对外域名，用于生成 RSS / sitemap 里的绝对链接。
+# 留成带 example. 的占位符也能跑：那两个接口检测到占位符会自动回退到实际请求地址，
+# 所以**没有域名之前不用改这里**。
+SITE_URL = "https://example.pages.dev"
+
+# 媒体（图片/音频）的公开访问地址。上传接口返回的 URL = 这个值 + 对象 key。
+# 注意：upload.ts **刻意不做占位符猜测** —— 留着这个占位符，上传就会返回
+# 指向不存在域名的 URL，图片必然打不开。所以必须改成真实地址：
+#   · 还没有域名：用 R2 桶的 r2.dev 地址（Settings → Public access → R2.dev subdomain）
+#   · 有域名之后：用 R2 自定义域，例如 https://static.你的域名
+MEDIA_URL = "https://static.example.pages.dev"
+
+# GitHub OAuth App 的 Client ID（**不是密钥**，可以提交）。
+# 留空时：/api/auth/me 会返回 githubEnabled=false，评论区显示「评论还没开启」，
+# 登录入口自动隐藏 —— 站点其它功能全部正常，所以可以先把站跑起来再配。
+# 怎么创建见 docs/deployment.md 第 3 步。
+GITHUB_CLIENT_ID = ""

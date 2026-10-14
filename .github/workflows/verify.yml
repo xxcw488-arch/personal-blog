@@ -1,0 +1,45 @@
+# 每次推送都跑一遍接口断言（当前 350+ 项，随 seed 数据略有浮动）
+# ------------------------------------------------------------
+# 为什么值得：`verify:api` 直接调用 functions/ 里真实的 handler，
+# 用 sql.js 当 D1 替身，断言返回 JSON、数据库副作用和生成的 XML。
+# 它已经抓到过 5 个真实 bug（含「后台开关存了但不生效」这类静默问题）。
+#
+# 公开仓库的 Actions 分钟数免费，放心跑。
+
+name: 验证
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: 安装依赖
+        working-directory: site
+        run: npm ci
+
+      - name: 前端类型检查
+        working-directory: site
+        run: npm run typecheck
+
+      - name: Functions 类型检查
+        working-directory: site
+        run: npm run typecheck:functions
+
+      - name: 接口断言
+        working-directory: site
+        run: npm run verify:api
+
+      - name: 构建
+        working-directory: site
+        run: npm run build

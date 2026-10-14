@@ -1,0 +1,8 @@
+# SPA 回退：所有非静态资源、非 /api/* 的路径都交给 index.html
+# ------------------------------------------------------------
+# 为什么需要它：Vue Router 用 history 模式，直接访问 /article/xxx 时
+# Pages 找不到对应文件会返回 404，刷新就白屏。
+#
+# 为什么不会吃掉接口：/api/* 由 _routes.json 声明交给 Functions，
+# Functions 先于 _redirects 执行，所以接口的 404 不会被这里改写。
+/*    /index.html   200

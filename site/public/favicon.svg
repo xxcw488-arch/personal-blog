@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-labelledby="fav-title">
+  <title id="fav-title">噜噜</title>
+
+  <!-- 朱砂底：在浅色与深色浏览器界面上都保持对比 -->
+  <rect x="0" y="0" width="32" height="32" rx="7" fill="#a63d2f"/>
+
+  <!-- 纸白剪影：两只圆耳 + 方圆的头 -->
+  <g fill="#fbf9f4">
+    <circle cx="9.6" cy="9.4" r="3.7"/>
+    <circle cx="22.4" cy="9.4" r="3.7"/>
+    <path d="M6 15C6 12.8 7.8 11 10 11H22C24.2 11 26 12.8 26 15V19.5C26 24 21.7 27 16 27C10.3 27 6 24 6 19.5Z"/>
+  </g>
+
+  <!-- 浅褐口鼻部 -->
+  <path d="M11.2 21.4C11.2 20.4 11.8 19.9 12.8 19.8C14.6 19.6 17.4 19.6 19.2 19.8C20.2 19.9 20.8 20.4 20.8 21.4C20.8 24.4 19 26 16 26C13 26 11.2 24.4 11.2 21.4Z"
+        fill="#e8bd83"/>
+
+  <!-- 鼻头：实心小色块，比细线更耐得住 16px -->
+  <ellipse cx="16" cy="21.9" rx="2.1" ry="1.7" fill="#1c1a17"/>
+
+  <!-- 眯眼弧：两只眼之间留足空隙，缩小后不会并成一团 -->
+  <g fill="none" stroke="#1c1a17" stroke-width="2.6" stroke-linecap="round">
+    <path d="M9.4 16.8Q11 13.6 12.6 16.8"/>
+    <path d="M19.4 16.8Q21 13.6 22.6 16.8"/>
+  </g>
+</svg>

@@ -1,0 +1,26 @@
+{
+  "name": "my-blog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "全功能个人博客：Vue 3 公开站 + 管理后台 + Cloudflare Pages Functions + D1",
+  "type": "module",
+  "scripts": {
+    "dev:local": "npm --prefix site run dev:local",
+    "dev:site": "npm --prefix site run dev",
+    "build": "npm --prefix site run build",
+    "typecheck": "npm --prefix site run typecheck && npm --prefix site run typecheck:functions",
+    "verify:api": "npm --prefix site run verify:api",
+
+    "db:init:local": "wrangler d1 execute DB --local --config site/wrangler.toml --file=./db/schema.sql",
+    "db:seed:local": "wrangler d1 execute DB --local --config site/wrangler.toml --file=./db/seed.sql",
+    "db:clear:local": "wrangler d1 execute DB --local --config site/wrangler.toml --file=./db/clear-demo.sql",
+
+    "db:init:remote": "wrangler d1 execute DB --remote --config site/wrangler.toml --file=./db/schema.sql",
+    "db:seed:remote": "wrangler d1 execute DB --remote --config site/wrangler.toml --file=./db/seed.sql",
+    "db:clear:remote": "wrangler d1 execute DB --remote --config site/wrangler.toml --file=./db/clear-demo.sql",
+    "db:backup:remote": "wrangler d1 export DB --remote --config site/wrangler.toml --output=./db/backup.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.20.0"
+  }
+}

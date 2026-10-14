@@ -1,0 +1,75 @@
+# 自动应用数据库结构（等价于「部署时自动迁移」）
+# ------------------------------------------------------------
+# 为什么需要它：Cloudflare Pages 的 Git 集成**只有构建步骤，没有可自定义的
+# 部署步骤**，所以「建表 / 改表」没法像 Workers 那样塞进 deploy command。
+# 这个 workflow 把这一步补上：推到生产分支就自动执行 db/schema.sql。
+#
+# 为什么可以反复执行：db/schema.sql 里全部是 `CREATE TABLE IF NOT EXISTS`，
+# 天然幂等 —— 重复跑不会报错，也不会覆盖已有数据。
+#
+# ⚠️ 它只能处理「新增表 / 新增索引 / 新增列以外的改动」。
+#    要改列类型、删列、改约束，得自己写 ALTER TABLE 并在这里追加一步。
+#
+# ⚠️ 它和 Pages 的自动部署是**并行**触发的（同一次 push），可能抢跑。
+#    对新增表没有影响；如果新代码依赖新列，建议先手动跑一次本 workflow
+#    （Actions → 数据库迁移 → Run workflow），再推代码。
+#
+# 需要配置（Settings → Secrets and variables → Actions）：
+#   Secret  CLOUDFLARE_API_TOKEN   权限：D1 编辑（Edit Cloudflare Workers 模板也行）
+#   Variable CLOUDFLARE_ACCOUNT_ID 控制台右侧栏可以看到
+
+name: 数据库迁移
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: 检查密钥是否配置
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          missing=0
+          if [ -z "$TOKEN" ]; then
+            echo "::error::缺少 Secret CLOUDFLARE_API_TOKEN（Settings → Secrets and variables → Actions）"
+            missing=1
+          fi
+          if [ -z "$ACCOUNT" ]; then
+            echo "::error::缺少 Variable CLOUDFLARE_ACCOUNT_ID"
+            missing=1
+          fi
+          exit $missing
+
+      - name: 安装 wrangler
+        run: npm ci
+
+      - name: 应用数据库结构
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute DB --remote \
+            --config site/wrangler.toml \
+            --file=./db/schema.sql
+
+      - name: 确认表已建好
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute DB --remote \
+            --config site/wrangler.toml \
+            --command="SELECT COUNT(*) AS tables FROM sqlite_master WHERE type = 'table'"

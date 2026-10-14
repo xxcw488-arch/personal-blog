@@ -1,0 +1,435 @@
+/* ============================================================
+   设计令牌 —— 暖调深色 + 极光光斑 + 霓虹渐变 + 玻璃拟态
+   ------------------------------------------------------------
+   数值来源：对参考站实际渲染后的 computed style 提取（见 docs/design-spec.md）。
+   注意：全站无衬线；玻璃感靠「半透明底 + 内侧 1px 白色高光」，不用 backdrop-filter。
+   ============================================================ */
+
+:root {
+  /* ---------- 字体 ---------- */
+  /* 参考站全站无衬线。--font-serif 保留为同族，避免遗留样式意外渲染成衬线体。 */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-serif: var(--font-sans);
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  /* 数字时钟用等宽，避免跳动 */
+  --font-clock: 'SF Mono', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+
+  /* ---------- 字阶 ---------- */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.375rem;
+  --fs-2xl: 1.75rem;
+  --fs-3xl: 2.25rem;
+  --fs-4xl: 3rem;
+  /* 首屏大标题：参考站实测 h1 = 72px，但那是 5 个字的站名。
+     我们的站名只有 2 个字，固定 72px 排出来只有约 266px 宽，
+     在 1440 的首屏里显得又小又空。所以改成随视口伸缩的 clamp：
+     窄屏不挤、宽屏能撑住画面。 */
+  --fs-hero: clamp(3.5rem, 9vw, 7rem);
+
+  /* ---------- 间距 ---------- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+  --sp-9: 6rem;
+
+  /* ---------- 栅格 ---------- */
+  --container: 1280px;
+  --container-wide: 1440px;
+  --sidebar-left: 260px;  /* 左栏：作者 + 热门标签 */
+  --sidebar-right: 300px; /* 右栏：时钟 / 相册 / 项目 / 日历 / 碎碎念 */
+  --measure: 46em;
+
+  /* ---------- 首屏（Hero）----------
+     首页的导航是**浮层**（见 SiteHeader 的 .hdr--overlay），不占布局位置：
+     停在首屏时整条导航收起，首屏背景一直铺到视口最顶端；
+     向下滚过阈值后导航才从上方滑入。所以首屏高度就是**整整一屏**。
+
+     ⚠️ 历史坑（留着备查）：导航以前是 sticky 占位的，那时 --hero-h 必须
+     减去「导航高 + 1px 底边框」。只减 4rem 会漏掉那 1px，导致
+     「导航 + Hero」= 901px > 900px 视口，首屏永远多露 1px 下一屏内容。
+     现在导航不占位，这笔账自然消失 —— 但若哪天改回占位，记得加回来。
+
+     高度用 min(svh, dvh)：dvh 跟随移动端地址栏伸缩更"贴屏"，
+     svh 是地址栏展开时的稳定最小值；取小者保证任何状态都不超过一屏。 */
+  --header-h: 4rem;
+  --hero-h: min(100svh, 100dvh); /* 首屏 = 整整一屏（导航是浮层，不占位） */
+  /* 内容块垂直居中后再微调：0 = 几何居中，正数下移、负数上移。
+     曾经用 +2.5rem（下移 40px）去对齐参考站的"视觉中心"，
+     但实测观感是"偏下、不够居中"，故归零。 */
+  --hero-shift: 0rem;
+  --hero-content-max: 60rem;
+
+  /* 全站背景遮罩（**中性**，不能带暖色相）：
+     背景本身已经是暖金 + 水色的照片质感，遮罩一旦再偏暖，
+     画面会整体发脏、发黄。所以这里只用纯黑控制明度，
+     色相全部交给背景层。
+
+     这一层现在是**全站**共用的（原先只在首屏内部），
+     所以「首页背景 == 内页背景」是严格成立的。
+
+     这里刻意"中间薄、两头厚"：之前是 0.7/0.52/0.78 的三段均匀压暗，
+     结果把整张照片质感底图压成了接近纯黑（实测可见亮度几乎为 0），
+     水面、水光、暖金光斑全部看不见。
+     中段降到 0.1：背景是主角之一，不能压成黑幕。
+     上下两头保留较重遮罩 —— 上面给导航条垫底，
+     下面保证按钮和滚动提示的对比度。 */
+  --bg-veil: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.18) 26%,
+    rgba(0, 0, 0, 0.1) 52%,
+    rgba(0, 0, 0, 0.26) 80%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+
+  /* ---------- 圆角（实测：小卡 16px，文章大卡 22px）---------- */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-full: 999px;
+
+  /* ---------- 动效 ---------- */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 160ms;
+  --dur: 280ms;
+  --dur-slow: 560ms;
+
+  /* ---------- 卡片悬停（全站统一，只此一处）----------
+     只做三件事：轻微上移、边框变色、亮度提升。
+     **刻意不做缩放** —— 卡片放大在密集栅格里会互相挤压，观感廉价。
+     卡片散落在十几个组件里，所以这套值必须是令牌：
+     改这里一处，全站所有卡片的悬停反馈同步变化，不会出现"有的有、有的没有"。
+     位移取 -2px：能感觉到"浮起来"，但不至于让相邻卡片看起来错位。 */
+  --hover-lift: -2px;
+  --hover-border: rgba(199, 148, 104, 0.55);
+  --hover-brightness: 1.05;
+  --hover-dur: 180ms;
+
+  /* ---------- 层级 ---------- */
+  --z-backdrop: 0;
+  --z-content: 1;
+  --z-header: 100;
+  --z-player: 250;
+  --z-toast: 400;
+
+  /* ============================================================
+     色彩 —— 深色（默认，与参考站一致）
+     ============================================================ */
+  --c-bg: #2a2620;          /* 暖褐底色 */
+  --c-bg-deep: #1c1915;     /* 更深，用于压暗与页脚 */
+  --c-ink: #ede6d8;         /* 高亮文字 */
+  --c-ink-2: #d8cfbe;       /* 正文 */
+  --c-ink-3: #a89f8e;       /* 次级 */
+  --c-ink-4: #7d7566;       /* 最弱 */
+  --c-line: #4a4232;        /* 卡片/分割线 */
+  --c-line-soft: rgba(74, 66, 50, 0.6);
+
+  /* 暖金强调（参考站的主强调色） */
+  --c-gold: #c79468;
+  --c-gold-deep: #9c6b3f;
+  --c-gold-soft: rgba(199, 148, 104, 0.15);
+  --c-accent: #c79468;
+  --c-accent-soft: rgba(199, 148, 104, 0.15);
+  --c-accent-ink: #1c1915;
+
+  /* 霓虹色板 */
+  --c-pink: #ff6ec7;
+  --c-rose: #ff8fab;
+  --c-cyan: #4dd0ff;
+  --c-cyan-bright: #22e1ff;
+  --c-purple: #b388ff;
+  --c-purple-mid: #9d7bff;
+  --c-purple-soft: #c79bff;
+  --c-blue: #7aa2ff;
+  --c-sage: #8fb08f;
+
+  /* 渐变（实测值） */
+  --grad-text: linear-gradient(
+    110deg,
+    #9c6b3f 0%,
+    #ff6ec7 25%,
+    #4dd0ff 50%,
+    #c79468 70%,
+    #b388ff 100%
+  );
+  --grad-primary: linear-gradient(135deg, #ff8fab 0%, #c79bff 55%, #9d7bff 100%);
+  --grad-brand-no: linear-gradient(120deg, #22e1ff, #4dd0ff 40%, #ff6ec7 100%);
+  --grad-preloader: linear-gradient(135deg, #c79bff 0%, #ff8fab 30%, #9d7bff 60%, #7aa2ff 100%);
+
+  /* ---------- 玻璃卡片 ---------- */
+  --glass-bg: rgba(42, 38, 32, 0.65);
+  --glass-bg-strong: rgba(42, 38, 32, 0.85);
+  --glass-bg-hover: rgba(52, 47, 40, 0.78);
+  --glass-border: 1px solid var(--c-line);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --glass-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+  /* 悬浮时的霓虹辉光 */
+  --glow-gold: 0 0 0 1px rgba(199, 148, 104, 0.4), 0 8px 28px rgba(199, 148, 104, 0.18);
+
+  --c-code-bg: rgba(0, 0, 0, 0.35);
+  --c-focus: var(--c-cyan);
+  /* 插画底版：吉祥物 SVG 是固定配色的插画（暖褐描边），
+     放在深底上描边会糊掉，所以给它一块固定的浅色"贴纸"底。 */
+  --c-plate: #f6f2ea;
+
+  /* 首屏角色：同 --c-plate 的浅色贴纸。背景照搬站点基色，
+     但 SVG 里读不到站点令牌，所以这几个值必须和上面保持一致。 */
+  --hero-char-plate: #f6f2ea;
+
+  /* 首屏背景（照片质感的程序化底图）：水感冷暖对撞 + 暖金光。
+     实测对齐参考站首屏亮度：它整屏均值 53、左上角亮部 78，
+     而我们原来这套底色（#16302c/#0d1a1f/#241d16）压出来整屏只有 32，
+     整个首屏是"黑乎乎一块"，看不出水面的照片质感。
+     所以底色的明度整体抬高，让它接近参考站的"亮背景"。 */
+  --bg-photo-base-1: #2f5f57;
+  --bg-photo-base-2: #1d3a44;
+  --bg-photo-base-3: #4a3a28;
+  --bg-photo-caustic: rgba(150, 240, 226, 0.95); /* 水光纹 */
+  --bg-photo-warm: rgba(226, 176, 124, 0.9);     /* 暖金光斑 */
+  --bg-photo-cool: rgba(96, 220, 255, 0.7);      /* 冷色补光 */
+  --bg-photo-violet: rgba(196, 158, 255, 0.62);  /* 紫调补光 */
+  /* 中央光晕：角色移除后接管视觉重心的一层。
+     取偏暖的水色高光，让画面中心"亮起来"而不是发灰。 */
+  --bg-photo-bloom: rgba(150, 226, 208, 0.5);
+  --bg-photo-grain: rgba(255, 255, 255, 0.5);    /* 胶片颗粒 */
+
+  /* ============================================================
+     兼容别名 —— 旧版（杂志排版）令牌名到新令牌的映射
+     作用：皮肤整体替换时，万一漏改了某个组件，也不会出现"变量不存在"
+     导致边框/阴影直接消失。新代码请直接用上面的新令牌名。
+     ============================================================ */
+  --hairline: 1px;
+  --c-bg-alt: var(--c-bg-deep);
+  --c-surface: var(--glass-bg-strong);
+  --c-surface-2: var(--glass-bg);
+  --c-line-strong: rgba(199, 148, 104, 0.35);
+  --shadow-sm: var(--glass-shadow);
+  --shadow: var(--glass-shadow);
+  --shadow-lg: var(--glass-shadow-lg);
+
+  color-scheme: dark;
+}
+
+/* ============================================================
+   浅色变体（参考站支持深浅切换；这里给同一套设计语言的浅色版）
+   ============================================================ */
+:root[data-theme='light'] {
+  --c-bg: #f6f2ea;
+  --c-bg-deep: #ece5d8;
+  --c-ink: #2a2620;
+  --c-ink-2: #4a4232;
+  --c-ink-3: #6d6455;
+  --c-ink-4: #948b7b;
+  --c-line: #ddd3c0;
+  --c-line-soft: rgba(221, 211, 192, 0.7);
+
+  --c-gold: #9c6b3f;
+  --c-gold-deep: #7d5430;
+  --c-gold-soft: rgba(156, 107, 63, 0.12);
+  --c-accent: #9c6b3f;
+  --c-accent-soft: rgba(156, 107, 63, 0.12);
+  --c-accent-ink: #f6f2ea;
+
+  /* 浅色下悬停描边要更深、更实：
+     深色主题那支 rgba(199,148,104,.55) 放在浅色卡片上几乎看不出来 */
+  --hover-border: rgba(156, 107, 63, 0.62);
+  --hover-brightness: 1.03;
+
+  /* 浅色下霓虹降低明度，保证在浅底上可读 */
+  --c-pink: #d6338f;
+  --c-rose: #e05a80;
+  --c-cyan: #0d8fb8;
+  --c-cyan-bright: #0aa7cf;
+  --c-purple: #7b4fd6;
+  --c-purple-mid: #6b3fc4;
+  --c-purple-soft: #9d7bff;
+  --c-blue: #3f6fd8;
+  --c-sage: #5f805f;
+
+  --grad-text: linear-gradient(
+    110deg,
+    #7d5430 0%,
+    #d6338f 25%,
+    #0d8fb8 50%,
+    #9c6b3f 70%,
+    #7b4fd6 100%
+  );
+  --grad-primary: linear-gradient(135deg, #e05a80 0%, #9d7bff 55%, #6b3fc4 100%);
+
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-strong: rgba(255, 255, 255, 0.82);
+  --glass-bg-hover: rgba(255, 255, 255, 0.78);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --glass-shadow: 0 4px 12px rgba(74, 66, 50, 0.1);
+  --glass-shadow-lg: 0 12px 32px rgba(74, 66, 50, 0.14);
+  --glow-gold: 0 0 0 1px rgba(156, 107, 63, 0.35), 0 8px 28px rgba(156, 107, 63, 0.14);
+
+  --c-code-bg: rgba(74, 66, 50, 0.08);
+
+  /* 浅色下的首屏遮罩改成"提亮"，否则深色覆盖会让浅色主题发灰。
+     和深色主题同一个思路：中段留薄，让水光透出来。
+     浅色下遮罩是"提亮"，所以中段要压到很低，
+     否则把本就浅的水光纹一起提成纯白（实测整屏标准差只剩 2）。 */
+  --bg-veil: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.16) 26%,
+    rgba(255, 255, 255, 0.08) 52%,
+    rgba(255, 255, 255, 0.24) 80%,
+    rgba(255, 255, 255, 0.54) 100%
+  );
+
+  /* 浅色下的"照片质感"：釉面青瓷 + 暖金。
+     底色必须与"白"拉开距离，否则水光纹根本显不出来 ——
+     原来 base 是 #dfecea/#e9e2d4/#f3ece0（都贴近白），
+     再叠一层浅色遮罩后整屏标准差只有 2~5，等于一张白纸，
+     "照片质感水面"完全消失（实测）。这里把明度整体压下来一档。 */
+  --bg-photo-base-1: #b9cfcb;
+  --bg-photo-base-2: #cfc6b2;
+  --bg-photo-base-3: #ded3c0;
+  --bg-photo-caustic: rgba(18, 96, 100, 0.62);
+  --bg-photo-warm: rgba(150, 100, 56, 0.6);
+  --bg-photo-cool: rgba(10, 120, 160, 0.5);
+  --bg-photo-violet: rgba(110, 70, 200, 0.4);
+  /* 浅色下光晕走 multiply，所以取"更清透的水色"而不是高光白 */
+  --bg-photo-bloom: rgba(120, 190, 186, 0.55);
+  --bg-photo-grain: rgba(42, 38, 32, 0.42);
+
+  /* 浅色下的兼容别名（同上，色值随主题变化） */
+  --c-line-strong: rgba(156, 107, 63, 0.35);
+
+  color-scheme: light;
+}
+
+/* ============================================================
+   基础
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+  -webkit-text-size-adjust: 100%;
+  background: var(--c-bg-deep);
+}
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-ink-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--c-ink);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease);
+}
+a:hover {
+  color: var(--c-gold);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--c-line);
+  margin: var(--sp-6) 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (hover: hover) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--c-bg-deep);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--c-line);
+    border-radius: var(--radius-full);
+    border: 2px solid var(--c-bg-deep);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--c-gold-deep);
+  }
+}
+
+::selection {
+  background: var(--c-gold);
+  color: var(--c-accent-ink);
+}

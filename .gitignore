@@ -1,0 +1,49 @@
+node_modules/
+dist/
+.wrangler/
+.wrangler-tmp/
+.dev.vars
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+_recon/
+
+# 接口验证脚手架的打包产物与生成的 XML（每次 verify:api 会重新生成）
+site/.fn-check/run.bundle.mjs
+site/.fn-check/out/
+
+# 本地开发服务器的自动生成路由表
+site/.fn-check/.devserver-routes.ts
+site/.fn-check/.devserver-routes.mjs
+
+# 一次性调试脚本（探针/截图/回归体检）与迭代过程的中间截图：
+# 按惯例命名为点开头的 .xxx.mjs / .xxx.py 或 _v1-*.png，用完即删，不入库。
+site/.*.mjs
+site/.*.py
+docs/screenshots/_v*.png
+docs/screenshots/_before-*.png
+docs/screenshots/_after*.png
+docs/screenshots/_prod-*.png
+
+# 参考站（第三方站点）的抓取素材：只用于本地比对，不随仓库发布。
+# 需要时重新抓一次即可。
+docs/_ref-*.json
+docs/screenshots/_ref-*
+
+# 不属于博客项目本身的提示词 / 风格规范文档。
+/UI-STYLE-PROMPT.md
+/flare-stack-blog-aurora-prompt.md
+/ui-style-rule.md
+
+# 内部工作笔记，不随仓库发布。
+docs/HANDOFF.md
+
+# DSH 会话导出包（体积大，且不属于博客项目本身）
+dsh-session-*.zip
