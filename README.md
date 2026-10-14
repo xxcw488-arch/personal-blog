@@ -14,6 +14,8 @@
 > 版权说明：只复刻**设计语言与架构思路**（配色、渐变、卡片规范、栅格、交互模式）。
 > 品牌名、吉祥物图片、照片，以及全部文章正文都是自己的内容，由后台设置控制。
 
+![首页](docs/screenshots/home-dark.jpg)
+
 ---
 
 ## 一、这个项目解决什么问题
@@ -534,15 +536,27 @@ curl "http://localhost:8799/sitemap.xml"
 
 ## 效果预览
 
-| 首页（深色 · 默认） | 首页（浅色） |
-|---|---|
-| ![首页深色](docs/screenshots/home-dark.png) | ![首页浅色](docs/screenshots/home-light.png) |
+> 下面全部是**当前代码实际渲染**的截图（1440×900，手机端 390×844），
+> 用本地开发服务器 + 无头浏览器现截，不是设计稿。
 
-| 文章详情 | 音域（播放器） |
+| 首页（深色 · 默认） | 首页（浅色主题） |
 |---|---|
-| ![文章详情](docs/screenshots/article-dark.png) | ![音域](docs/screenshots/music-dark.png) |
+| ![首页深色](docs/screenshots/home-dark.jpg) | ![首页浅色](docs/screenshots/home-light.jpg) |
 
-更多截图见 [docs/screenshots](docs/screenshots)（文章列表、相册灯箱、手机端）。
+| 文章列表 | 文章详情 |
+|---|---|
+| ![文章列表](docs/screenshots/posts-dark.jpg) | ![文章详情](docs/screenshots/article-dark.jpg) |
+
+| 相册详情 | 音域（播放器） |
+|---|---|
+| ![相册详情](docs/screenshots/album-dark.jpg) | ![音域](docs/screenshots/music-dark.jpg) |
+
+| 友链 + 留言板 | 手机端（390px） |
+|---|---|
+| ![友链与留言板](docs/screenshots/links-dark.jpg) | ![手机端](docs/screenshots/mobile-dark.jpg) |
+
+首页首屏的导航是**浮层**（停在首屏时收起，向下滚过 96px 才滑入），
+所以首页截图里看不到导航条 —— 这是设计如此，不是漏截。
 
 ---
 
