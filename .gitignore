@@ -23,19 +23,18 @@ site/.fn-check/out/
 site/.fn-check/.devserver-routes.ts
 site/.fn-check/.devserver-routes.mjs
 
-# 一次性调试脚本（探针/截图/回归体检）与迭代过程的中间截图：
-# 按惯例命名为点开头的 .xxx.mjs / .xxx.py 或 _v1-*.png，用完即删，不入库。
+# 一次性调试脚本（探针/截图/回归体检）：点开头命名，用完即删，不入库。
 site/.*.mjs
 site/.*.py
-docs/screenshots/_v*.png
-docs/screenshots/_before-*.png
-docs/screenshots/_after*.png
-docs/screenshots/_prod-*.png
 
-# 参考站（第三方站点）的抓取素材：只用于本地比对，不随仓库发布。
-# 需要时重新抓一次即可。
+# 截图目录里**下划线开头**的一律不入库 —— 这类都是内部产物：
+# 迭代过程的中间截图（_v1 / _before / _after / _prod / _final …）、
+# 参考站抓取素材（_ref …）。只列具体命名一定会漏（_final-* 就是这么混进去的），
+# 所以这里用一条通配兜住整个类别。
+docs/screenshots/_*
+
+# 参考站（第三方站点）的抓取数据：只用于本地比对，需要时重新抓一次。
 docs/_ref-*.json
-docs/screenshots/_ref-*
 
 # 不属于博客项目本身的提示词 / 风格规范文档。
 /UI-STYLE-PROMPT.md
